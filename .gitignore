@@ -1,2 +1,6 @@
 *.swp
 *.swo
+/target/
+log/log.txt
+src/
+/src/main/resources/keyring.json
