@@ -3,7 +3,7 @@
 JARNAME=trelloApp-1.0-SNAPSHOT-jar-with-dependencies
 SRCs=App TrelloAssistant
 SRCdir=src/main/java/com/github/nailbiter/
-KEYS=-s src/main/resources/keyring.json -m writecard
+KEYS=-s src/main/resources/keyring.json -m readcard
 MAINCLASS=App
 
 all: target/$(JARNAME).jar
