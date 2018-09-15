@@ -1,12 +1,17 @@
 package com.github.nailbiter;
 
 import java.io.FileReader;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import com.julienvey.trello.Trello;
 import com.julienvey.trello.domain.Board;
+import com.julienvey.trello.domain.Card;
+import com.julienvey.trello.domain.TList;
 import com.julienvey.trello.impl.TrelloImpl;
 import com.julienvey.trello.impl.http.ApacheHttpClient;
 
@@ -40,7 +45,24 @@ public class App
 				new ApacheHttpClient());
 		Board board = trelloApi.getBoard("foFETfOx");
 		System.out.println(String.format("board is named: %s", board.getName()));
+		System.out.println("lists:");
 		List<TList> lists = board.fetchLists();
+		for(TList list:lists) {
+			System.out.println(String.format("\tlist %s with id=%s", list.getName(),list.getId()));
+			if(list.getName().equals("TOSHI")) {
+				System.out.println("\t\there");
+				Card card = new Card();
+				card.setName("java test");
+				Calendar calendar = Calendar.getInstance(); 
+				calendar.add(Calendar.HOUR, 4);  
+				Date due = calendar.getTime();
+				card.setDue(due);
+				
+				card.setIdList("5ad5ec9cb5e2bd847a41088c");
+				card.setClosed(true);
+				list.createCard(card);
+			}
+		}
     }
     static JSONObject getJSONObject(String fname) {
     	FileReader fr = null;

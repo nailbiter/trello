@@ -4,3 +4,6 @@
 log/log.txt
 src/
 /src/main/resources/keyring.json
+.classpath
+.project
+.settings
