@@ -1,9 +1,11 @@
 package com.github.nailbiter;
 
 import java.io.FileReader;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -11,16 +13,13 @@ import org.json.JSONTokener;
 import com.julienvey.trello.Trello;
 import com.julienvey.trello.domain.Board;
 import com.julienvey.trello.domain.Card;
+import com.julienvey.trello.domain.Label;
 import com.julienvey.trello.domain.TList;
 import com.julienvey.trello.impl.TrelloImpl;
 import com.julienvey.trello.impl.http.ApacheHttpClient;
 
 import gnu.getopt.Getopt;
 
-/**
- * Hello world!
- *
- */
 public class App 
 {
 	static JSONObject secret = new JSONObject();
@@ -56,21 +55,27 @@ public class App
 				Calendar calendar = Calendar.getInstance(); 
 				calendar.add(Calendar.HOUR, 4);  
 				Date due = calendar.getTime();
+				System.out.println(String.format("date: %s", due.toString()));
 				card.setDue(due);
-				
-				card.setIdList("5ad5ec9cb5e2bd847a41088c");
-				card.setClosed(true);
 				list.createCard(card);
+//				card.setClosed(true);
+				
+				
+				Map<String, String> labels = board.getLabelNames();
+				for(String key:labels.keySet()) {
+					System.out.println(String.format("\t\tlabel: %s -- %s", key,labels.get(key)));
+				}
+//				Label label = new Label();
+//				label.setName("testlabel");
+//				card.setLabels(Arrays.asList(label));
+//				card.isClosed()
 			}
 		}
     }
     static JSONObject getJSONObject(String fname) {
     	FileReader fr = null;
 		JSONObject res = null;
-//		System.out.println(String.format("%s.get(%s,%s)", StorageManager.class.getName(),name,register));
 		try {
-//			System.out.println("StorageManager got "+name);
-//			String fname = LocalUtil.getJarFolder()+name+".json";
 			System.out.println("storageManager gonna open: "+fname);
 			fr = new FileReader(fname);
 			StringBuilder sb = new StringBuilder();
