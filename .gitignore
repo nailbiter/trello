@@ -2,8 +2,8 @@
 *.swo
 /target/
 log/log.txt
-src/
 /src/main/resources/keyring.json
 .classpath
 .project
 .settings
+.DS_Store
