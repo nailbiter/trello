@@ -113,6 +113,12 @@ public class App
     		}
     	}
     }
+    static public void makecard2() throws Exception {
+    	String listid =  ta_.findListByName(board.getId(),"TODO");
+    	ta_.addCard(listid, new JSONObject()
+    			.put("name", "testname")
+    			.put("due", new Date()));
+    }
     static public void makecard() {
 		System.out.println("\t\there");
 		Card card = new Card();
@@ -127,11 +133,9 @@ public class App
     static void uploadsmalltasklist() throws Exception {
     	String listid =  ta_.findListByName(board.getId(),"TODO");
     	System.out.format("id :%s\n", listid);
-//    	ta_.addCard(listid, new JSONObject().put("name", "name").put("due", new Date()));
     	try (BufferedReader br = new BufferedReader(new FileReader(resFolder+"smalltodo.txt"))) {
     	    String line;
     	    while ((line = br.readLine()) != null) {
-//    	       System.out.format("line: %s\n", line);
     	    	ta_.addCard(listid, new JSONObject().put("name", line));
     	    }
     	}
