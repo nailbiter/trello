@@ -5,6 +5,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -12,6 +13,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.http.client.ClientProtocolException;
+import org.jline.reader.Completer;
+import org.jline.reader.LineReader;
+import org.jline.reader.LineReaderBuilder;
+import org.jline.reader.impl.completer.StringsCompleter;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -29,6 +34,8 @@ import gnu.getopt.Getopt;
 
 public class App 
 {
+	private static final String PROMPT = "trello> ";
+	private static final String BOARDID = "kDCITi9O";
 	static JSONObject secret = new JSONObject();
 	private static TrelloImpl trelloApi;
 	private static Board board;
@@ -38,22 +45,27 @@ public class App
     public static void main( String[] args ) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException
     {
         System.out.println( "Hello World!" );
-        Getopt g = new Getopt("testprog", args, "s:m:r:");
+        Getopt g = new Getopt("testprog", args, "s:m:r:i");
 		String testfile = null, methodToCall = null;
 		int c = 0;
 		while ((c = g.getopt()) != -1) {
 			if(c=='s'){
 				testfile= g.getOptarg();
 				System.out.format("secret file: %s\n",testfile);
+				secret = getJSONObject(testfile);
 			} else if(c=='m') {
 				methodToCall = g.getOptarg();
 				System.out.format("method to call: %s\n",methodToCall);
 			} else if(c=='r') {
 				resFolder = g.getOptarg();
 				System.out.format("resFolder: %s\n",resFolder);
+			}else if(c=='i') {
+				System.out.format("interactive mode\n");
+				(new App()).startInteraction();
+				return;
 			}
 		}
-		secret = getJSONObject(testfile);
+
 		System.out.println(secret.toString(2));
 		
 		trelloApi = new TrelloImpl(secret.getString("trellokey"), 
@@ -61,7 +73,7 @@ public class App
 				new ApacheHttpClient());
 		ta_ = new TrelloAssistant(secret.getString("trellokey"), 
 				secret.getString("trellotoken"));
-		board = trelloApi.getBoard("kDCITi9O");
+		board = trelloApi.getBoard(BOARDID);
 		System.out.println(String.format("board is named: %s", board.getName()));
     	System.out.println("lists:");
 		List<TList> lists = board.fetchLists();
@@ -77,7 +89,59 @@ public class App
 		App.class.getDeclaredMethod(methodToCall).invoke(new App());
     }
     
-    static public void putlabel() throws ClientProtocolException, IOException {
+    private void startInteraction() {
+    	ArrayList<String> commands = new ArrayList<String>();
+		PopulateCommands(commands);
+		commands.add("exit");
+		commands.add("help");
+		System.out.format("commands: %s\n", commands.toString());
+		
+		Completer completer = new StringsCompleter(commands);
+        LineReader reader = LineReaderBuilder.builder().completer(completer).build();
+        String line = null;
+        
+        while (true) {
+            line = null;
+            try {
+                line = reader.readLine(PROMPT).trim();
+                if(line.equals("exit")) {
+                	return;
+                }else if(line.equals("help")){
+//                	return;
+                	System.out.format("commands: %s\n", commands.toString());
+                } else {
+                	String[] split = line.split(" ",2);
+                	String methodToCall = split[0];
+                	String reply = (String)App.class.getDeclaredMethod(methodToCall,String.class).invoke(this,split[1]);
+                	System.out.format("%s\n", reply);
+                }
+            }
+            catch(Exception e) {
+            	e.printStackTrace();
+            }
+        }
+	}
+
+	private static void PopulateCommands(ArrayList<String> commands) {
+		commands.clear();
+		commands.add("makearchived");
+	}
+	public static String makearchived(String rem) throws Exception {
+		String listId = ta_.findListByName(BOARDID, "todo");
+		
+		JSONObject res = ta_.addCard(listId, new JSONObject().put("name", rem));
+		String[] split = res.getString("shortUrl").split("/");
+		String id = split[4];
+		System.err.format("id: %s\n", id);
+		ta_.archiveCard(id);
+		return String.format("%s", res.getString("url"));
+	}
+	public App() {
+		ta_ = new TrelloAssistant(secret.getString("trellokey"), 
+				secret.getString("trellotoken"));
+	}
+
+	static public void putlabel() throws ClientProtocolException, IOException {
     	JSONArray cards = ta_.getCardsInList(list.getId());
     	for(Object o:cards) {
     		JSONObject obj = (JSONObject)o;
@@ -150,7 +214,6 @@ public class App
             int character;
             while ((character = fr.read()) != -1) {
             		sb.append((char)character);
-                //System.out.print((char) character);
             }
             System.out.println("found "+sb.toString());
 			fr.close();
