@@ -1,9 +1,10 @@
 .PHONY: all copy
 
 JARNAME=trelloApp-1.0-SNAPSHOT-jar-with-dependencies
-SRCs=App TrelloAssistant util/Util
+SRCs=App $(addprefix util/,TrelloAssistant Util)
 SRCdir=src/main/java/com/github/nailbiter/
-KEYS=-s src/main/resources/keyring.json -m uploadsmalltasklist -r src/main/resources/ -i
+#KEYS=-s src/main/resources/keyring.json -m uploadsmalltasklist -r src/main/resources/ -i
+KEYS=-s src/main/resources/keyring.json -r src/main/resources/ -m makeCardWithCheckList
 MAINCLASS=App
 
 all: target/$(JARNAME).jar

@@ -25,6 +25,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.github.nailbiter.util.TrelloAssistant;
 import com.github.nailbiter.util.Util;
 import com.julienvey.trello.Trello;
 import com.julienvey.trello.domain.Board;
@@ -46,6 +47,7 @@ public class App
 	private static TList list;
 	private static TrelloAssistant ta_;
 	private static String resFolder;
+	private ScriptEngine engine_;
     public static void main( String[] args ) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException
     {
         System.out.println( "Hello World!" );
@@ -92,7 +94,6 @@ public class App
 		
 		App.class.getDeclaredMethod(methodToCall).invoke(new App());
     }
-	private ScriptEngine engine_;
     
     private void startInteraction() {
     	ArrayList<String> commands = new ArrayList<String>();
@@ -125,7 +126,17 @@ public class App
             }
         }
 	}
-
+    static void makeCardWithCheckList() throws Exception{
+    	String listid =  ta_.findListByName(board.getId(),"PENDING");
+    	JSONObject res = ta_.addCard(listid, new JSONObject()
+    			.put("name", "testcard")
+    			.put("checklist", new JSONArray()
+    					.put("checkname")
+    					.put("one")
+    					.put("two")
+    					.put("three")));
+    	System.out.format("hi there with!\n %s\n",res.toString(2)); 
+    }
 	private static void PopulateCommands(ArrayList<String> commands) {
 		commands.clear();
 		commands.add("makearchived");
