@@ -1,7 +1,7 @@
 .PHONY: all copy
 
 JARNAME=trelloApp-1.0-SNAPSHOT-jar-with-dependencies
-SRCs=App TrelloAssistant Util
+SRCs=App TrelloAssistant util/Util
 SRCdir=src/main/java/com/github/nailbiter/
 KEYS=-s src/main/resources/keyring.json -m uploadsmalltasklist -r src/main/resources/ -i
 MAINCLASS=App

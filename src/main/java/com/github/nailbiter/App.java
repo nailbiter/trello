@@ -11,6 +11,10 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
+
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
 
 import org.apache.http.client.ClientProtocolException;
 import org.jline.reader.Completer;
@@ -20,8 +24,8 @@ import org.jline.reader.impl.completer.StringsCompleter;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.json.JSONTokener;
 
+import com.github.nailbiter.util.Util;
 import com.julienvey.trello.Trello;
 import com.julienvey.trello.domain.Board;
 import com.julienvey.trello.domain.Card;
@@ -52,7 +56,7 @@ public class App
 			if(c=='s'){
 				testfile= g.getOptarg();
 				System.out.format("secret file: %s\n",testfile);
-				secret = getJSONObject(testfile);
+				secret = Util.getJSONObject(testfile);
 			} else if(c=='m') {
 				methodToCall = g.getOptarg();
 				System.out.format("method to call: %s\n",methodToCall);
@@ -88,6 +92,7 @@ public class App
 		
 		App.class.getDeclaredMethod(methodToCall).invoke(new App());
     }
+	private ScriptEngine engine_;
     
     private void startInteraction() {
     	ArrayList<String> commands = new ArrayList<String>();
@@ -98,22 +103,21 @@ public class App
 		
 		Completer completer = new StringsCompleter(commands);
         LineReader reader = LineReaderBuilder.builder().completer(completer).build();
-        String line = null;
         
-        while (true) {
+        for (String line=null;;) {
             line = null;
             try {
                 line = reader.readLine(PROMPT).trim();
                 if(line.equals("exit")) {
                 	return;
                 }else if(line.equals("help")){
-//                	return;
                 	System.out.format("commands: %s\n", commands.toString());
                 } else {
                 	String[] split = line.split(" ",2);
                 	String methodToCall = split[0];
-                	String reply = (String)App.class.getDeclaredMethod(methodToCall,String.class).invoke(this,split[1]);
-                	System.out.format("%s\n", reply);
+                		String reply = (String)App.class.getDeclaredMethod(methodToCall,String.class).invoke(this,
+                    			(split.length>1)?split[1]:null);
+                    	System.out.format("%s\n", reply);
                 }
             }
             catch(Exception e) {
@@ -125,8 +129,64 @@ public class App
 	private static void PopulateCommands(ArrayList<String> commands) {
 		commands.clear();
 		commands.add("makearchived");
+		commands.add("addcard");
+		commands.add("countcard");
+		commands.add("getactions");
 	}
-	public static String makearchived(String rem) throws Exception {
+	public String getactions(String rem) throws Exception {
+		String listId = ta_.findListByName(BOARDID, "TODO");
+		JSONObject obj = null;
+		if(!(rem==null || rem.isEmpty())) {
+			obj = new JSONObject(rem);
+		}
+		final JSONObject filter = obj;
+		JSONArray arr = ta_.getListActions(listId,obj);
+		if(obj!=null) {
+			ArrayList<JSONObject> coll = new ArrayList<JSONObject>();
+			for(int i = 0; i < arr.length(); i++) {
+				coll.add(arr.getJSONObject(i));
+			}
+			for(final String key:filter.keySet()) {
+				coll.removeIf(new Predicate<JSONObject>() {
+					@Override
+					public boolean test(JSONObject t) {
+						return !(t.getString(key).startsWith(filter.getString(key)));
+					}
+				});
+			}
+			arr = new JSONArray(coll);
+		}
+		return String.format("got: %s\n", arr.toString(2));
+	}
+	public String countcard(String rem) throws Exception {
+		String listId = ta_.findListByName(BOARDID, "TODO");
+		String name = rem;
+		JSONArray array = ta_.getCardsInList(listId);
+		int count = 0;
+		for(Object o : array) {
+			JSONObject obj = (JSONObject)o;
+			if(obj.getString("name").equals(name))
+				count++;
+		}
+		
+		return String.format("counted %d (out of %d) cards with name \"%s\"", count,array.length(),name);
+	}
+	public String addcard(String rem) throws Exception {
+		String[] split = rem.split(" ",2);
+		String listId = ta_.findListByName(BOARDID, "TODO");
+		JSONObject obj = new JSONObject()
+				.put("name", split[1])
+				.put("count", (int)engine_.eval(split[0])),
+				clone = new JSONObject(obj.toString());
+		
+		clone.remove("count");
+		for(int i = 0, count = obj.getInt("count"); i < count;i++) {
+			ta_.addCard(listId, clone);
+		}
+		
+		return String.format("added \"%s\" %d times", obj.toString(),obj.getInt("count"));
+	}
+	public String makearchived(String rem) throws Exception {
 		String listId = ta_.findListByName(BOARDID, "todo");
 		
 		JSONObject res = ta_.addCard(listId, new JSONObject().put("name", rem));
@@ -139,9 +199,11 @@ public class App
 	public App() {
 		ta_ = new TrelloAssistant(secret.getString("trellokey"), 
 				secret.getString("trellotoken"));
+		ScriptEngineManager mgr = new ScriptEngineManager();
+	    engine_ = mgr.getEngineByName("JavaScript");
 	}
 
-	static public void putlabel() throws ClientProtocolException, IOException {
+	static public void putlabel() throws Exception {
     	JSONArray cards = ta_.getCardsInList(list.getId());
     	for(Object o:cards) {
     		JSONObject obj = (JSONObject)o;
@@ -155,7 +217,7 @@ public class App
 			System.out.println(String.format("\t\tlabel: %s -- %s", key,labels.get(key)));
 		}
     }
-    static public void readcard() throws ClientProtocolException, IOException {
+    static public void readcard() throws Exception {
     	JSONArray cards = ta_.getCardsInList(list.getId());
     	System.out.println("here go the cards");
     	System.out.println(cards.length());
@@ -164,7 +226,7 @@ public class App
     		System.out.println(String.format("\t%s", obj.toString()));
     	}
     }
-    static public void writecard() throws ClientProtocolException, IOException {
+    static public void writecard() throws Exception {
     	System.out.println("write card");
     	JSONArray cards = ta_.getCardsInList(list.getId());
     	System.out.println(cards.length());
@@ -203,26 +265,5 @@ public class App
     	    	ta_.addCard(listid, new JSONObject().put("name", line));
     	    }
     	}
-    }
-    static JSONObject getJSONObject(String fname) {
-    	FileReader fr = null;
-		JSONObject res = null;
-		try {
-			System.out.println("storageManager gonna open: "+fname);
-			fr = new FileReader(fname);
-			StringBuilder sb = new StringBuilder();
-            int character;
-            while ((character = fr.read()) != -1) {
-            		sb.append((char)character);
-            }
-            System.out.println("found "+sb.toString());
-			fr.close();
-			res = (JSONObject) (new JSONTokener(sb.toString())).nextValue();
-		}
-		catch(Exception e) {
-			System.out.println("found nothing");
-			res = new JSONObject();
-		}
-		return res;
     }
 }
