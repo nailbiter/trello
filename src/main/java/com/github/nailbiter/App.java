@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -171,12 +172,16 @@ public class App
 	}
 	public String countcard(String rem) throws Exception {
 		String listId = ta_.findListByName(BOARDID, "TODO");
-		String name = rem;
 		JSONArray array = ta_.getCardsInList(listId);
+		
+		String name = rem;
+//		Pattern p = Pattern.compile(name);
+		
 		int count = 0;
 		for(Object o : array) {
 			JSONObject obj = (JSONObject)o;
-			if(obj.getString("name").equals(name))
+//			if(obj.getString("name").equals(name))
+			if(Pattern.matches(name, obj.getString("name")))
 				count++;
 		}
 		
@@ -205,7 +210,7 @@ public class App
 		String id = split[4];
 		System.err.format("id: %s\n", id);
 		ta_.archiveCard(id);
-		return String.format("%s", res.getString("url"));
+		return String.format("%s", res.getString("shortUrl"));
 	}
 	public App() {
 		ta_ = new TrelloAssistant(secret.getString("trellokey"), 
