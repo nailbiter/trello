@@ -1,3 +1,9 @@
 {
-	"cardurl":"https://trello.com/c/PRx9xtMj"
+   "cardurl" : "https://trello.com/c/JVJnWNWY",
+   "dependencies" : [
+      "src/main/java/com/github/nailbiter/util/"
+   ],
+   "pulledData" : {
+      "trelloTitle" : "compress read habit"
+   }
 }
