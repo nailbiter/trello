@@ -20,6 +20,7 @@ public class AppChild extends App {
 		commands.add("addcard");
 		commands.add("countcard");
 		commands.add("getactions");
+		commands.add("removecards");
 	}
 	public String getactions(String rem) throws Exception {
 		String listId = ta_.findListByName(BOARDID, "TODO");
@@ -76,6 +77,27 @@ public class AppChild extends App {
 		return String.format("%scounted %d (out of %d) cards with name \"%s\"",
 				tb.toString(),
 				count,array.length(),regex);
+	}
+	public String removecards(String rem) throws Exception {
+		String[] split = rem.split(" ",2);
+		String listId = ta_.findListByName(BOARDID, "TODO");
+		int count = (int)engine_.eval(split[0]);
+		String name = split[1];
+		JSONArray array = ta_.getCardsInList(listId);
+		
+		int i = 0;
+		for(Object o : array) {
+			JSONObject obj = (JSONObject)o;
+			String cardName = obj.getString("name");
+			if(cardName.equals(name)) {
+				if(i >= count) break;
+				ta_.removeCard(obj.getString("id"));
+				System.out.format("removed %s\n", obj.getString("id"));
+				i++;
+			}
+		}
+		
+		return String.format("removed \"%s\" %d times", name,i);
 	}
 	public String addcard(String rem) throws Exception {
 		String[] split = rem.split(" ",2);
