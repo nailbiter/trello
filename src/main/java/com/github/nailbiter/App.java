@@ -34,9 +34,10 @@ import gnu.getopt.Getopt;
 public abstract class App 
 {
 	protected static final String PROMPT = "trello> ";
-	protected static final String BOARDID = "kDCITi9O";
+	protected static final String HABITBOARDID = "kDCITi9O";
+	protected static final String INBOXBOARDID = "foFETfOx";
 	static JSONObject secret = new JSONObject();
-	protected static TrelloImpl trelloApi;
+//	protected static TrelloImpl trelloApi;
 	protected static Board board;
 	protected static TList list;
 	protected static TrelloAssistant ta_;
@@ -68,12 +69,12 @@ public abstract class App
 
 		System.out.println(secret.toString(2));
 		
-		trelloApi = new TrelloImpl(secret.getString("trellokey"), 
+		TrelloImpl trelloApi = new TrelloImpl(secret.getString("trellokey"), 
 				secret.getString("trellotoken"), 
 				new ApacheHttpClient());
 		ta_ = new TrelloAssistant(secret.getString("trellokey"), 
 				secret.getString("trellotoken"));
-		board = trelloApi.getBoard(BOARDID);
+		board = trelloApi.getBoard(HABITBOARDID);
 		System.out.println(String.format("board is named: %s", board.getName()));
     	System.out.println("lists:");
 		List<TList> lists = board.fetchLists();
@@ -123,7 +124,7 @@ public abstract class App
     abstract protected void populateCommands(ArrayList<String> commands);
 
 	static void makeCardWithCheckList() throws Exception{
-    	String listid =  ta_.findListByName(board.getId(),"PENDING");
+    	String listid =  ta_.findListByName(HABITBOARDID,"PENDING");
     	JSONObject res = ta_.addCard(listid, new JSONObject()
     			.put("name", "testcard")
     			.put("checklist", new JSONArray()
@@ -178,7 +179,7 @@ public abstract class App
     	}
     }
     static public void makecard2() throws Exception {
-    	String listid =  ta_.findListByName(board.getId(),"TODO");
+    	String listid =  ta_.findListByName(HABITBOARDID,"TODO");
     	ta_.addCard(listid, new JSONObject()
     			.put("name", "testname")
     			.put("due", new Date()));
@@ -195,7 +196,7 @@ public abstract class App
 		list.createCard(card);
     }
     static void uploadsmalltasklist() throws Exception {
-    	String listid =  ta_.findListByName(board.getId(),"TODO");
+    	String listid =  ta_.findListByName(HABITBOARDID,"TODO");
     	System.out.format("id :%s\n", listid);
     	try (BufferedReader br = new BufferedReader(new FileReader(resFolder+"smalltodo.txt"))) {
     	    String line;

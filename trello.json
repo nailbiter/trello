@@ -1,9 +1,9 @@
 {
+   "pulledData" : {
+      "trelloTitle" : "trelloapp: move upper card to top of other list"
+   },
+   "cardurl" : "https://trello.com/c/zbkPJbHS",
    "dependencies" : [
       "src/main/java/com/github/nailbiter/util/"
-   ],
-   "cardurl" : "https://trello.com/c/JVJnWNWY",
-   "pulledData" : {
-      "trelloTitle" : "compress read habit"
-   }
+   ]
 }

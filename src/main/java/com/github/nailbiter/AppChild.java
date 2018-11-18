@@ -21,9 +21,20 @@ public class AppChild extends App {
 		commands.add("countcard");
 		commands.add("getactions");
 		commands.add("removecards");
+		commands.add("movetoeasytasks");
+	}
+	public String movetoeasytasks(String rem) throws Exception {
+		String oldlistid = ta_.findListByName(HABITBOARDID, "todo"),
+				newlistid = ta_.findListByName(INBOXBOARDID, "sweet tasks");
+		System.err.format("old=%s\nnew=%s\n", oldlistid,newlistid);
+		JSONArray arr = ta_.getCardsInList(oldlistid);
+		String cardid = arr.getJSONObject(arr.length()-1).getString("id");
+		ta_.moveCard(cardid, newlistid,"top");
+		
+		return arr.getJSONObject(arr.length()-1).toString();
 	}
 	public String getactions(String rem) throws Exception {
-		String listId = ta_.findListByName(BOARDID, "TODO");
+		String listId = ta_.findListByName(HABITBOARDID, "TODO");
 		JSONObject obj = null;
 		if(!(rem==null || rem.isEmpty())) {
 			obj = new JSONObject(rem);
@@ -48,7 +59,7 @@ public class AppChild extends App {
 		return String.format("got: %s\n", arr.toString(2));
 	}
 	public String countcard(String rem) throws Exception {
-		String listId = ta_.findListByName(BOARDID, "TODO");
+		String listId = ta_.findListByName(HABITBOARDID, "TODO");
 		JSONArray array = ta_.getCardsInList(listId);
 		
 		String regex = rem;
@@ -77,10 +88,10 @@ public class AppChild extends App {
 		return String.format("%scounted %d (out of %d) cards with name \"%s\"",
 				tb.toString(),
 				count,array.length(),regex);
-	}
+		}
 	public String removecards(String rem) throws Exception {
 		String[] split = rem.split(" ",2);
-		String listId = ta_.findListByName(BOARDID, "TODO");
+		String listId = ta_.findListByName(HABITBOARDID, "TODO");
 		int count = (int)engine_.eval(split[0]);
 		String name = split[1];
 		JSONArray array = ta_.getCardsInList(listId);
@@ -101,7 +112,7 @@ public class AppChild extends App {
 	}
 	public String addcard(String rem) throws Exception {
 		String[] split = rem.split(" ",2);
-		String listId = ta_.findListByName(BOARDID, "TODO");
+		String listId = ta_.findListByName(HABITBOARDID, "TODO");
 		JSONObject obj = new JSONObject()
 				.put("name", split[1])
 				.put("count", (int)engine_.eval(split[0])),
@@ -115,7 +126,7 @@ public class AppChild extends App {
 		return String.format("added \"%s\" %d times", obj.toString(),obj.getInt("count"));
 	}
 	public String makearchived(String rem) throws Exception {
-		String listId = ta_.findListByName(BOARDID, "todo");
+		String listId = ta_.findListByName(HABITBOARDID, "todo");
 		
 		JSONObject res = ta_.addCard(listId, new JSONObject().put("name", rem));
 		String[] split = res.getString("shortUrl").split("/");
