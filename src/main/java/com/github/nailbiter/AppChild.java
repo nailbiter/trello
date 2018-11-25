@@ -23,6 +23,56 @@ public class AppChild extends App {
 		commands.add("getactions");
 		commands.add("removecards");
 		commands.add("movetoeasytasks");
+		commands.add("rename");
+	}
+	public String rename(String rem) throws Exception {
+		String[] split = rem.split(" ",3);
+		String listId = ta_.findListByName(HABITBOARDID, "TODO");
+		JSONArray array = ta_.getCardsInList(listId),
+				matched = new JSONArray();
+		
+		String regex = split[0];
+		
+		int count = 0;
+		Hashtable<String,Integer> counthash = new Hashtable<String,Integer>(); 
+		for(Object o : array) {
+			JSONObject obj = (JSONObject)o;
+			String name = obj.getString("name");
+			if(Pattern.matches(regex, name)) {
+				matched.put(obj);
+				if(!counthash.containsKey(name)) {
+					counthash.put(name, 0);
+				}
+				counthash.put(name, counthash.get(name)+1);
+				count++;
+			}
+		}
+		
+		TableBuilder tb = new TableBuilder();
+		tb.addNewlineAndTokens("name", "count");
+		for(String name : counthash.keySet()) {
+			tb.newRow();
+			tb.addToken(name);
+			tb.addToken(counthash.get(name));
+		}
+		if(split.length>=3 && split[2].equals("-t")) {
+			return String.format("%s\ngoing to rename %d (out of %d) cards to \"%s\"",
+					tb.toString(),
+					count,
+					array.length(),
+					split[1]);
+		} else {
+			for(Object o:matched) {
+				JSONObject obj = (JSONObject)o;
+//				System.out.format("%s\n", obj.toString(2));
+				ta_.renameCard(obj.getString("id"), split[1]);
+			}
+			return String.format("renaming %d (out of %d) cards to \"%s\"",
+					count,
+					array.length(),
+					split[1]);
+		}
+		
 	}
 	public String movetoeasytasks(String rem) throws Exception {
 		String oldlistid = ta_.findListByName(HABITBOARDID, "todo"),
@@ -89,7 +139,7 @@ public class AppChild extends App {
 		return String.format("%scounted %d (out of %d) cards with name \"%s\"",
 				tb.toString(),
 				count,array.length(),regex);
-		}
+	}
 	public String removecards(String rem) throws Exception {
 		String[] split = rem.split(" ",2);
 		String listId = ta_.findListByName(HABITBOARDID, "TODO");
