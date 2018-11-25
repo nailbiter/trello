@@ -11,6 +11,7 @@ import org.json.JSONObject;
 import com.github.nailbiter.util.TableBuilder;
 
 public class AppChild extends App {
+	protected static final String INBOXBOARDIDLONG = "5a83f33d7c047209445249dd";
 	public AppChild() {
 		super();
 	}
@@ -29,7 +30,7 @@ public class AppChild extends App {
 		System.err.format("old=%s\nnew=%s\n", oldlistid,newlistid);
 		JSONArray arr = ta_.getCardsInList(oldlistid);
 		String cardid = arr.getJSONObject(arr.length()-1).getString("id");
-		ta_.moveCard(cardid, newlistid,"top");
+		ta_.moveCard(cardid, INBOXBOARDIDLONG+"."+newlistid,"top");
 		
 		return arr.getJSONObject(arr.length()-1).toString();
 	}

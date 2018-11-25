@@ -36,8 +36,9 @@ public abstract class App
 	protected static final String PROMPT = "trello> ";
 	protected static final String HABITBOARDID = "kDCITi9O";
 	protected static final String INBOXBOARDID = "foFETfOx";
+	
+	
 	static JSONObject secret = new JSONObject();
-//	protected static TrelloImpl trelloApi;
 	protected static Board board;
 	protected static TList list;
 	protected static TrelloAssistant ta_;
